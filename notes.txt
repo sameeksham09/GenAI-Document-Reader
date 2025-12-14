@@ -1,0 +1,17 @@
+Generative AI refers to artificial intelligence systems that can generate new content such as text, images, audio, or code.
+These systems learn patterns from large datasets and use probabilistic methods to create outputs.
+
+Large Language Models (LLMs) are a type of Generative AI model designed to understand and generate human-like text.
+They are trained on massive datasets containing books, articles, code, and other text sources.
+
+Retrieval-Augmented Generation (RAG) is a technique used to improve the accuracy of LLM responses.
+Instead of relying only on the model’s internal knowledge, RAG retrieves relevant information from external documents.
+This retrieved information is provided to the model as context before generating an answer.
+
+RAG helps reduce hallucinations, improves factual correctness, and allows models to work with up-to-date or private data.
+
+Prompt engineering is the practice of carefully designing input prompts to guide the behavior of a language model.
+Well-structured prompts can control the tone, format, and accuracy of generated outputs.
+
+Local language models can be run on personal machines using tools like Ollama.
+These models do not require internet access or paid APIs and are useful for experimentation and learning.
