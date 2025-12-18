@@ -60,6 +60,11 @@ while True:
         print("Invalid option.")
         continue
 
+    style_guard = """
+Do not explain concepts beyond the document.
+Do not introduce new definitions.
+"""
+
     # Step 4: Send ONLY retrieved chunks to LLM
     prompt = f"""
 Use ONLY the context below.
