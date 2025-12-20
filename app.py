@@ -38,10 +38,16 @@ while True:
         print("🤖 AI Answer: I don't know based on the provided document.")
         continue
 
-    context = "\n".join(retrieved_chunks)
+    context = "\n".join([c["text"] for c in retrieved_chunks])
+    sources = [f"notes.txt | chunk {c['id']}" for c in retrieved_chunks]
+
 
     prompt = build_prompt(context, instruction, question)
     answer = generate_answer(prompt)
 
     print("\n🤖 AI Output:")
     print(answer)
+    print("\n📌 Sources:")
+    for src in sources:
+        print("-", src)
+
