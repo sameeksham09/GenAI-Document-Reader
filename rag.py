@@ -8,12 +8,13 @@ with open("notes.txt", "r") as f:
     text = f.read()
 
 # Step 1: Chunk the document
-def chunk_text(text, chunk_size=300):
+def chunk_text(text, chunk_size=80):  # try 80 or 50
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size):
         chunks.append(" ".join(words[i:i+chunk_size]))
     return chunks
+
 
 chunks = chunk_text(text)
 
@@ -37,5 +38,11 @@ with open("chunks.pkl", "wb") as f:
     pickle.dump(chunks_with_ids, f)
 
 faiss.write_index(index, "doc_index.faiss")
+
+print("Number of chunks:", len(chunks_with_ids))
+for c in chunks_with_ids:
+    print("chunk id:", c["id"], "| words:", len(c["text"].split()))
+
+print("Embeddings shape:", embeddings.shape)
 
 print("✅ Document indexed successfully.")
