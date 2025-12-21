@@ -20,9 +20,8 @@ Do not introduce new definitions.
 def build_prompt(context, instruction, question):
     return f"""
 Use ONLY the context below.
-Do NOT use prior knowledge.
-If the answer cannot be inferred directly from the context, say:
-"I don't know based on the provided document."
+If the answer can be inferred from the context, answer clearly in your own words.
+Do NOT introduce information not present in the context.
 
 Context:
 {context}

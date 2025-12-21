@@ -3,6 +3,8 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import pickle
 
+SIMILARITY_THRESHOLD = 1.8  # 🔥 key addition
+
 # Load chunks
 with open("chunks.pkl", "rb") as f:
     chunks = pickle.load(f)
@@ -10,38 +12,30 @@ with open("chunks.pkl", "rb") as f:
 # Load FAISS index
 index = faiss.read_index("doc_index.faiss")
 
-# ✅ Load embedding model ONCE (THIS WAS MISSING)
+# Load embedding model
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def retrieve_context(question, k=4):
-    """
-    Retrieve top-k relevant chunks along with similarity scores
-    """
-    # Convert question to embedding
     question_embedding = embed_model.encode([question])
     question_embedding = np.array(question_embedding, dtype=np.float32)
 
-    # Search more than k to remove duplicates
-    D, I = index.search(question_embedding, k * 4)
+    D, I = index.search(question_embedding, k)
 
-    seen_ids = set()
+    print("\n🔍 Retrieved Chunks:")
     retrieved = []
 
-    for idx, distance in zip(I[0], D[0]):
-        chunk_id = chunks[idx]["id"]
+    for score, idx in zip(D[0], I[0]):
+        safe_score = float(score)
+        print(f"- Chunk {chunks[idx]['id']} | score: {safe_score:.4f}")
 
-        if chunk_id in seen_ids:
-            continue
 
-        seen_ids.add(chunk_id)
+        if score > SIMILARITY_THRESHOLD:
+            continue  # ❌ reject weak matches
 
         retrieved.append({
-            "id": chunk_id,
+            "id": chunks[idx]["id"],
             "text": chunks[idx]["text"],
-            "score": float(distance)
+            "score": score
         })
-
-        if len(retrieved) == k:
-            break
 
     return retrieved
