@@ -1,10 +1,10 @@
-def get_instruction(qtype):
+def get_instruction(qtype, num_questions=1):
     if qtype == "1":
         return "Answer the question clearly."
-    elif qtype == "2":
-        return "Create 4 multiple-choice options and clearly mark the correct answer."
-    elif qtype == "3":
-        return "Answer strictly as True or False and give one-line justification."
+    elif qtype == "2":  # MCQ
+        return f"Create {num_questions} multiple-choice questions and clearly mark the correct answers."
+    elif qtype == "3":  # True/False
+        return f"Create {num_questions} True/False questions and provide one-line justification."
     elif qtype == "4":
         return "Create a fill-in-the-blank question and provide the answer."
     else:

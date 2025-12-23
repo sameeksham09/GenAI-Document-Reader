@@ -37,16 +37,42 @@ qtype_mapping = {
 }
 qtype_number = qtype_mapping[qtype]
 
-# -------------------------
-# 3️⃣ Ask Question
-# -------------------------
-question = st.text_input("Enter your question:")
+if qtype == "MCQ":
+    num_questions = st.number_input(
+        "How many MCQs do you want?",
+        min_value=1, max_value=20, value=5, step=1
+    )
+elif qtype == "True / False":
+    num_questions = st.number_input(
+        "How many True/False questions do you want?",
+        min_value=1, max_value=20, value=5, step=1
+    )
+else:
+    num_questions = 1    
 
+# -------------------------
+# 3️⃣ Dynamic Placeholder
+# -------------------------
+question_placeholder = {
+    "Descriptive": "Type your question here...",
+    "MCQ": "Enter the topic or question for MCQ generation...",
+    "True / False": "Enter a statement to verify True or False...",
+    "Fill in the blanks": "Enter a sentence or concept for fill-in-the-blank..."
+}
+
+question = st.text_input(
+    "Enter your question:",
+    placeholder=question_placeholder[qtype]
+)
+
+# -------------------------
+# 4️⃣ Get Answer
+# -------------------------
 if st.button("Get Answer"):
     if not question.strip():
         st.warning("Please enter a question!")
     else:
-        instruction = get_instruction(qtype_number)
+        instruction = get_instruction(qtype_number, num_questions)
 
         # Retrieve relevant chunks
         retrieved_chunks = retrieve_context(question)
