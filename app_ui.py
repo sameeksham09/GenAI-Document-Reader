@@ -1,97 +1,111 @@
 import streamlit as st
+import pickle
 from retriver import retrieve_context, add_new_document
 from prompts import get_instruction, build_prompt
 from generator import generate_answer
 
+DOC_LIST_FILE = "uploaded_docs.pkl"
+DOC_META_FILE = "doc_metadata.pkl"
+
 st.set_page_config(page_title="📄 RAG QA System", layout="wide")
 st.title("📄 RAG QA System")
-st.markdown(
-    "Ask questions based on your documents and get grounded answers with citations."
-)
+st.markdown("Ask questions based on your documents and get grounded answers with citations.")
 
 # -------------------------
-# 1️⃣ File Upload
+# Upload Document
 # -------------------------
 st.subheader("Upload a new document (TXT or PDF)")
 uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf"])
 
-if uploaded_file is not None:
-    file_bytes = uploaded_file.read()
-    filename = uploaded_file.name
-    add_new_document(file_bytes, filename)
-    st.success(f"✅ {filename} has been added to the knowledge base!")
+if uploaded_file:
+    added = add_new_document(uploaded_file.read(), uploaded_file.name)
+    if added:
+        st.success(f"✅ {uploaded_file.name} added successfully!")
 
 # -------------------------
-# 2️⃣ Question Type
+# Knowledge Base
+# -------------------------
+st.subheader("📂 Knowledge Base Documents")
+try:
+    with open(DOC_LIST_FILE, "rb") as f:
+        docs = pickle.load(f)
+    if docs:
+        for doc in docs:
+            st.write(f"- {doc}")
+    else:
+        st.info("No documents uploaded yet.")
+except:
+    st.info("No documents uploaded yet.")
+
+# -------------------------
+# Document Summary
+# -------------------------
+try:
+    with open(DOC_LIST_FILE, "rb") as f:
+        uploaded_docs = pickle.load(f)
+except:
+    uploaded_docs = []
+
+try:
+    with open(DOC_META_FILE, "rb") as f:
+        metadata = pickle.load(f)
+except:
+    metadata = {}
+
+if uploaded_docs:
+    st.subheader("📄 Document Summary / Insights")
+
+    for doc in uploaded_docs:
+        if doc in metadata:
+            with st.expander(doc):
+                st.write(metadata[doc])
+else:
+    st.info("No documents uploaded yet.")
+
+
+# -------------------------
+# Question Mode
 # -------------------------
 qtype = st.selectbox(
     "Select question type:",
     ["Descriptive", "MCQ", "True / False", "Fill in the blanks"]
 )
 
-qtype_mapping = {
+qtype_map = {
     "Descriptive": "1",
     "MCQ": "2",
     "True / False": "3",
     "Fill in the blanks": "4"
 }
-qtype_number = qtype_mapping[qtype]
+qtype_number = qtype_map[qtype]
 
-if qtype == "MCQ":
+if qtype in ["MCQ", "True / False"]:
     num_questions = st.number_input(
-        "How many MCQs do you want?",
-        min_value=1, max_value=20, value=5, step=1
-    )
-elif qtype == "True / False":
-    num_questions = st.number_input(
-        "How many True/False questions do you want?",
-        min_value=1, max_value=20, value=5, step=1
+        "Number of questions",
+        min_value=1, max_value=20, value=5
     )
 else:
-    num_questions = 1    
+    num_questions = 1
+
+question = st.text_input("Enter your question:")
 
 # -------------------------
-# 3️⃣ Dynamic Placeholder
-# -------------------------
-question_placeholder = {
-    "Descriptive": "Type your question here...",
-    "MCQ": "Enter the topic or question for MCQ generation...",
-    "True / False": "Enter a statement to verify True or False...",
-    "Fill in the blanks": "Enter a sentence or concept for fill-in-the-blank..."
-}
-
-question = st.text_input(
-    "Enter your question:",
-    placeholder=question_placeholder[qtype]
-)
-
-# -------------------------
-# 4️⃣ Get Answer
+# Ask
 # -------------------------
 if st.button("Get Answer"):
-    if not question.strip():
-        st.warning("Please enter a question!")
+    instruction = get_instruction(qtype_number, num_questions)
+    retrieved = retrieve_context(question)
+
+    if not retrieved:
+        st.warning("I don't know based on the provided document.")
     else:
-        instruction = get_instruction(qtype_number, num_questions)
+        context = "\n".join(c["text"] for c in retrieved)
+        prompt = build_prompt(context, instruction, question)
+        answer = generate_answer(prompt)
 
-        # Retrieve relevant chunks
-        retrieved_chunks = retrieve_context(question)
+        st.subheader("🤖 AI Output")
+        st.text_area("Answer", value=answer, height=300)
 
-        if not retrieved_chunks:
-            st.write("🤖 AI Output: I don't know based on the provided document.")
-        else:
-            # Build context
-            context = "\n".join([c["text"] for c in retrieved_chunks])
-            prompt = build_prompt(context, instruction, question)
-
-            # Generate answer
-            answer = generate_answer(prompt)
-
-            # Display answer
-            st.subheader("🤖 AI Output:")
-            st.write(answer)
-
-            # Display sources & similarity scores
-            st.subheader("📌 Sources & Similarity Scores:")
-            for c in retrieved_chunks:
-                st.write(f"- {c['source']} | similarity score: {c['score']:.4f}")
+        st.subheader("📌 Sources")
+        for c in retrieved:
+            st.write(f"- {c['source']} | similarity: {c['score']:.4f}")
