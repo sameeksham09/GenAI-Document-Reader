@@ -32,7 +32,7 @@ except:
     chunks = []
 
 # ---------------- RETRIEVAL ----------------
-def retrieve_context(question, k=4):
+def retrieve_context(question, k=4, selected_doc=None):
     question_embedding = embed_model.encode([question])
     question_embedding = np.array(question_embedding, dtype=np.float32)
 
@@ -54,6 +54,10 @@ def retrieve_context(question, k=4):
 
         seen.add(chunk["id"])
 
+        # Only keep chunks from the selected document if provided
+        if selected_doc and chunk["source"] != selected_doc:
+            continue
+
         retrieved.append({
             "id": chunk["id"],
             "text": chunk["text"],
@@ -65,6 +69,7 @@ def retrieve_context(question, k=4):
             break
 
     return retrieved
+
 
 # ---------------- DOCUMENT INGESTION ----------------
 def add_new_document(file_bytes, filename):
@@ -124,15 +129,18 @@ def add_new_document(file_bytes, filename):
     # 6️⃣ Analyze document (ChatPDF-style)
     analysis = analyze_document(text)
 
+    # Ensure metadata is always a dict
     try:
         with open(DOC_META_FILE, "rb") as f:
             metadata = pickle.load(f)
     except:
         metadata = {}
 
-    metadata[filename] = analysis
+    # 🔑 STORE IN A CONSISTENT STRUCTURE
+    metadata[filename] = {
+        "summary": analysis if isinstance(analysis, str) else str(analysis)
+    }
 
     with open(DOC_META_FILE, "wb") as f:
         pickle.dump(metadata, f)
 
-    return True

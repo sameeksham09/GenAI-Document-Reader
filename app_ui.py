@@ -1,5 +1,7 @@
 import streamlit as st
 import pickle
+import os
+
 from retriver import retrieve_context, add_new_document
 from prompts import get_instruction, build_prompt
 from generator import generate_answer
@@ -28,41 +30,62 @@ with col1:
     if uploaded_file:
         with st.spinner("Processing and adding document..."):
             added = add_new_document(uploaded_file.read(), uploaded_file.name)
+
         if added:
             st.success(f"✅ {uploaded_file.name} added successfully!")
             current_file = uploaded_file.name
 
+    # -------------------------
+    # Knowledge Base Documents
+    # -------------------------
     st.subheader("📂 Knowledge Base Documents")
-    try:
+
+    if os.path.exists(DOC_LIST_FILE):
         with open(DOC_LIST_FILE, "rb") as f:
             uploaded_docs = pickle.load(f)
-    except FileNotFoundError:
+    else:
         uploaded_docs = []
 
-    # Show newly uploaded file first
-    if current_file:
-        st.write(f"- {current_file} (newly uploaded)")
+    if not uploaded_docs:
+        st.info("No documents uploaded yet.")
+    else:
+        for doc in uploaded_docs:
+            if doc == current_file:
+                st.write(f"📄 **{doc}** (new)")
+            else:
+                st.write(f"📄 {doc}")
 
-    # Show previous files
-    for doc in uploaded_docs:
-        if doc != current_file:
-            st.write(f"- {doc}")
-
+    # -------------------------
+    # Document Summary
+    # -------------------------
     st.subheader("📄 Document Summary / Insights")
-    try:
+
+    # Load metadata
+    if os.path.exists(DOC_META_FILE):
         with open(DOC_META_FILE, "rb") as f:
             metadata = pickle.load(f)
-        if metadata:
-            default_doc = current_file if current_file else next(iter(metadata.keys()))
-            selected_doc = st.selectbox(
-                "Select document",
-                options=list(metadata.keys()),
-                index=list(metadata.keys()).index(default_doc)
-            )
-            with st.expander(selected_doc):
-                st.write(metadata[selected_doc])
-    except FileNotFoundError:
+    else:
+        metadata = {}
+
+    if not metadata:
         st.info("No document summaries available yet.")
+    else:
+        doc_names = list(metadata.keys())
+        placeholder = "— Select a document —"
+        options = [placeholder] + doc_names
+
+        # Default to placeholder, only show summary when a real document is selected
+        selected_doc = st.selectbox(
+            "Select document",
+            options=options,
+            index=0
+        )
+
+        if selected_doc != placeholder:
+            summary = metadata[selected_doc].get("summary", "No summary available.")
+            st.markdown("### Summary")
+            st.write(summary)
+
 
 # -------------------------
 # RIGHT COLUMN: Ask Questions
@@ -95,7 +118,7 @@ with col2:
 
     if st.button("Get Answer"):
         instruction = get_instruction(qtype_number, num_questions)
-        retrieved = retrieve_context(question)
+        retrieved = retrieve_context(question, selected_doc=selected_doc)
 
         if not retrieved:
             st.warning("I don't know based on the provided document.")
