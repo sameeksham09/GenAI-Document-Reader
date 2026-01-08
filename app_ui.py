@@ -48,6 +48,7 @@ with col1:
         if added:
             st.success(f"✅ {uploaded_file.name} added successfully!")
             st.session_state.selected_doc = uploaded_file.name
+            st.rerun()  # 
 
             # reload metadata since it just changed
             if os.path.exists(DOC_META_FILE):
@@ -56,13 +57,32 @@ with col1:
 
     st.subheader("📄 Document Summary / Insights")
 
-    if not metadata or not st.session_state.selected_doc:
-        st.info("Upload a document to see its summary.")
-    else:
-        selected_doc = st.session_state.selected_doc
-        summary_text = metadata.get(selected_doc, {}).get("summary", "No summary available.")
-        st.markdown(summary_text)
-
+    st.subheader("📄 Active Document")
+if not metadata:
+    st.info("No documents available. Upload your first document.")
+else:
+    # Get all document names (sorted by most recent)
+    doc_names = sorted(list(metadata.keys()), key=lambda x: x.lower())
+    
+    # Find index of currently selected doc (or default to last one)
+    default_idx = 0
+    if st.session_state.selected_doc in doc_names:
+        default_idx = doc_names.index(st.session_state.selected_doc)
+    
+    # 🆕 DOCUMENT SWITCHER
+    selected_doc = st.selectbox(
+        "Choose document:",
+        doc_names,
+        index=default_idx,
+        help="Switch between uploaded documents"
+    )
+    
+    # Update session state
+    st.session_state.selected_doc = selected_doc
+    
+    # Show summary for selected document
+    summary_text = metadata[selected_doc].get("summary", "No summary available.")
+    st.markdown(summary_text)
 
 # -------------------------
 # RIGHT: Ask Questions
@@ -71,7 +91,7 @@ with col2:
     st.subheader("Ask Questions")
 
     if not metadata or not st.session_state.selected_doc:
-        st.info("Upload a document before asking questions.")
+         st.info("Please select a document from the left panel.")
     else:
         selected_doc = st.session_state.selected_doc
 
