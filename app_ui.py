@@ -27,6 +27,12 @@ with col1:
 
     current_file = None
 
+    if os.path.exists(DOC_META_FILE):
+        with open(DOC_META_FILE, "rb") as f:
+            metadata = pickle.load(f)
+    else:
+        metadata = {}
+
     if uploaded_file:
         with st.spinner("Processing and adding document..."):
             added = add_new_document(uploaded_file.read(), uploaded_file.name)
@@ -35,56 +41,27 @@ with col1:
             st.success(f"✅ {uploaded_file.name} added successfully!")
             current_file = uploaded_file.name
 
-    # -------------------------
-    # Knowledge Base Documents
-    # -------------------------
-    st.subheader("📂 Knowledge Base Documents")
-
-    if os.path.exists(DOC_LIST_FILE):
-        with open(DOC_LIST_FILE, "rb") as f:
-            uploaded_docs = pickle.load(f)
-    else:
-        uploaded_docs = []
-
-    if not uploaded_docs:
-        st.info("No documents uploaded yet.")
-    else:
-        for doc in uploaded_docs:
-            if doc == current_file:
-                st.write(f"📄 **{doc}** (new)")
-            else:
-                st.write(f"📄 {doc}")
 
     # -------------------------
-    # Document Summary
-    # -------------------------
-    st.subheader("📄 Document Summary / Insights")
+# Document Summary
+# -------------------------
+st.subheader("📄 Document Summary / Insights")
 
-    # Load metadata
-    if os.path.exists(DOC_META_FILE):
-        with open(DOC_META_FILE, "rb") as f:
-            metadata = pickle.load(f)
+if not metadata:
+    st.info("No document summaries available yet.")
+else:
+    # Show summary of newly uploaded file if exists
+    if current_file and current_file in metadata:
+        selected_doc = current_file
     else:
-        metadata = {}
+        # Default to the first document in metadata
+        selected_doc = list(metadata.keys())[0]
 
-    if not metadata:
-        st.info("No document summaries available yet.")
-    else:
-        doc_names = list(metadata.keys())
-        placeholder = "— Select a document —"
-        options = [placeholder] + doc_names
+    summary_text = metadata[selected_doc].get("summary", "No summary available.")
+    st.markdown(summary_text)
+    
 
-        # Default to placeholder, only show summary when a real document is selected
-        selected_doc = st.selectbox(
-            "Select document",
-            options=options,
-            index=0
-        )
 
-        if selected_doc != placeholder:
-            summary = metadata[selected_doc].get("summary", "No summary available.")
-            st.markdown("### Summary")
-            st.write(summary)
 
 
 # -------------------------

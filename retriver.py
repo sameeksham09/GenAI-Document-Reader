@@ -37,7 +37,9 @@ def retrieve_context(question, k=4, selected_doc=None):
     question_embedding = np.array(question_embedding, dtype=np.float32)
 
     if index.ntotal == 0:
+        print("FAISS index empty. No documents to retrieve from.")
         return []
+
 
     D, I = index.search(question_embedding, k * 3)
 
@@ -138,8 +140,9 @@ def add_new_document(file_bytes, filename):
 
     # 🔑 STORE IN A CONSISTENT STRUCTURE
     metadata[filename] = {
-        "summary": analysis if isinstance(analysis, str) else str(analysis)
-    }
+    "summary": analysis.get("summary", "") if isinstance(analysis, dict) else analysis
+}
+
 
     with open(DOC_META_FILE, "wb") as f:
         pickle.dump(metadata, f)
