@@ -85,9 +85,11 @@ def add_new_document(file_bytes, filename):
         pdf_stream = io.BytesIO(file_bytes)
         reader = PdfReader(pdf_stream)
         for page in reader.pages:
-            if page.extract_text():
-                text += page.extract_text() + " "
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + " "
 
+    # If no text, fail early
     if not text.strip():
         return False
 
@@ -99,7 +101,7 @@ def add_new_document(file_bytes, filename):
         chunk = {
             "id": len(chunks),
             "text": " ".join(words[i:i + CHUNK_SIZE]),
-            "source": filename
+            "source": filename,
         }
         chunks.append(chunk)
         new_chunks.append(chunk)
@@ -107,7 +109,6 @@ def add_new_document(file_bytes, filename):
     # 3️⃣ Embed
     embeddings = embed_model.encode([c["text"] for c in new_chunks])
     embeddings = np.array(embeddings, dtype=np.float32)
-
     index.add(embeddings)
 
     # 4️⃣ Persist FAISS + chunks
@@ -131,19 +132,18 @@ def add_new_document(file_bytes, filename):
     # 6️⃣ Analyze document (ChatPDF-style)
     analysis = analyze_document(text)
 
-    # Ensure metadata is always a dict
     try:
         with open(DOC_META_FILE, "rb") as f:
             metadata = pickle.load(f)
     except:
         metadata = {}
 
-    # 🔑 STORE IN A CONSISTENT STRUCTURE
     metadata[filename] = {
-    "summary": analysis.get("summary", "") if isinstance(analysis, dict) else analysis
-}
-
+        "summary": analysis.get("summary", "") if isinstance(analysis, dict) else analysis
+    }
 
     with open(DOC_META_FILE, "wb") as f:
         pickle.dump(metadata, f)
 
+    # ✅ signal success so UI can react
+    return True
