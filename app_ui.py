@@ -13,16 +13,19 @@ st.title("📄 RAG QA System")
 st.markdown("Ask questions based on your documents and get grounded answers with citations.")
 
 # -------------------------
-# Session state
+# Session State Init
 # -------------------------
 if "selected_doc" not in st.session_state:
     st.session_state.selected_doc = None
 
-if "ask_mode" not in st.session_state:
-    st.session_state.ask_mode = "current"  # or "all"
+if "last_context" not in st.session_state:
+    st.session_state.last_context = None
+
+if "last_question" not in st.session_state:
+    st.session_state.last_question = None
 
 # -------------------------
-# Load metadata
+# Load Metadata
 # -------------------------
 if os.path.exists(DOC_META_FILE):
     with open(DOC_META_FILE, "rb") as f:
@@ -35,9 +38,9 @@ else:
 # -------------------------
 col1, col2 = st.columns(2)
 
-# -------------------------
-# LEFT: Upload + Summary
-# -------------------------
+# ======================================================
+# LEFT COLUMN: Upload + Summary
+# ======================================================
 with col1:
     st.subheader("Upload a new document (TXT or PDF)")
     uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf"])
@@ -56,43 +59,23 @@ with col1:
 
     st.subheader("📄 Document Summary / Insights")
 
-    if not metadata or not st.session_state.selected_doc:
-        st.info("Upload a document to see its summary.")
+    if not st.session_state.selected_doc:
+        st.info("Upload a document to view its summary.")
     else:
-        summary_text = metadata.get(
-            st.session_state.selected_doc, {}
-        ).get("summary", "No summary available.")
-        st.markdown(summary_text)
+        doc = st.session_state.selected_doc
+        summary = metadata.get(doc, {}).get("summary", "No summary available.")
+        st.markdown(summary)
 
-# -------------------------
-# RIGHT: Ask Questions
-# -------------------------
+# ======================================================
+# RIGHT COLUMN: Questions + Follow-ups
+# ======================================================
 with col2:
     st.subheader("Ask Questions")
 
-    if not metadata:
-        st.info("Upload at least one document to ask questions.")
+    if not st.session_state.selected_doc:
+        st.info("Please upload a document before asking questions.")
     else:
-        # 🔁 MODE TOGGLE
-        mode = st.radio(
-            "Question scope:",
-            ["Ask from current document", "Ask from all documents"],
-            horizontal=True
-        )
-
-        if mode == "Ask from current document":
-            st.session_state.ask_mode = "current"
-            active_doc = st.session_state.selected_doc
-            st.caption("📄 Using only the selected document")
-        else:
-            st.session_state.ask_mode = "all"
-            active_doc = None
-            st.caption("📚 Using all uploaded documents")
-
-        # Block only if current-doc mode but no document selected
-        if st.session_state.ask_mode == "current" and not active_doc:
-            st.warning("Please upload and select a document first.")
-            st.stop()
+        active_doc = st.session_state.selected_doc
 
         qtype = st.selectbox(
             "Select question type:",
@@ -110,14 +93,16 @@ with col2:
         if qtype in ["MCQ", "True / False"]:
             num_questions = st.number_input(
                 "Number of questions",
-                min_value=1, max_value=20, value=5
+                min_value=1,
+                max_value=20,
+                value=5
             )
         else:
             num_questions = 1
 
         question = st.text_input(
             "Enter your question:",
-            placeholder="Ask a question or describe a topic for quiz generation."
+            placeholder="Ask about this document or request quiz-style questions."
         )
 
         if st.button("Get Answer"):
@@ -129,7 +114,7 @@ with col2:
             )
 
             if not retrieved:
-                st.warning("I don't know based on the available documents.")
+                st.warning("I don't know based on the provided document.")
             else:
                 context = "\n".join(c["text"] for c in retrieved)
                 prompt = build_prompt(context, instruction, question)
