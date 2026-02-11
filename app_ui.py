@@ -8,6 +8,9 @@ from generator import generate_answer
 
 DOC_META_FILE = "doc_metadata.pkl"
 
+# -------------------------
+# Page config
+# -------------------------
 st.set_page_config(page_title="📄 RAG QA System", layout="wide")
 st.title("📄 RAG QA System")
 st.markdown("Ask questions based on your documents and get grounded answers with citations.")
@@ -53,6 +56,7 @@ with col1:
             st.success(f"✅ {uploaded_file.name} added successfully!")
             st.session_state.selected_doc = uploaded_file.name
 
+            # Reload metadata after upload
             if os.path.exists(DOC_META_FILE):
                 with open(DOC_META_FILE, "rb") as f:
                     metadata = pickle.load(f)
@@ -88,6 +92,7 @@ with col2:
             "True / False": "3",
             "Fill in the blanks": "4"
         }
+
         qtype_number = qtype_map[qtype]
 
         if qtype in ["MCQ", "True / False"]:
@@ -120,9 +125,55 @@ with col2:
                 prompt = build_prompt(context, instruction, question)
                 answer = generate_answer(prompt)
 
+                # Save for follow-ups
+                st.session_state.last_context = context
+                st.session_state.last_question = question
+
                 st.subheader("🤖 AI Output")
                 st.text_area("Answer", value=answer, height=300)
 
                 st.subheader("📌 Sources")
                 for c in retrieved:
                     st.write(f"- {c['source']} | similarity: {c['score']:.4f}")
+
+    # ==================================================
+    # SMART FOLLOW-UPS
+    # ==================================================
+    if st.session_state.last_context and st.session_state.last_question:
+        st.subheader("🔁 Smart Follow-ups")
+        st.caption("Would you like:")
+
+        f1, f2, f3 = st.columns(3)
+
+        with f1:
+            if st.button("1️⃣ Examples"):
+                instruction = "Give clear, real-world examples based on the context."
+                prompt = build_prompt(
+                    st.session_state.last_context,
+                    instruction,
+                    st.session_state.last_question
+                )
+                output = generate_answer(prompt)
+                st.text_area("📘 Examples", value=output, height=250)
+
+        with f2:
+            if st.button("2️⃣ MCQs"):
+                instruction = get_instruction("2", 5)
+                prompt = build_prompt(
+                    st.session_state.last_context,
+                    instruction,
+                    st.session_state.last_question
+                )
+                output = generate_answer(prompt)
+                st.text_area("📝 MCQs", value=output, height=250)
+
+        with f3:
+            if st.button("3️⃣ Explain like I'm 5"):
+                instruction = "Explain this in very simple terms like explaining to a 5-year-old."
+                prompt = build_prompt(
+                    st.session_state.last_context,
+                    instruction,
+                    st.session_state.last_question
+                )
+                output = generate_answer(prompt)
+                st.text_area("🧸 ELI5", value=output, height=250)
