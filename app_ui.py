@@ -70,8 +70,8 @@ with col1:
         summary = metadata.get(doc, {}).get("summary", "No summary available.")
         st.markdown(summary)
 
-# ======================================================
-# RIGHT COLUMN: Questions + Follow-ups
+# # ======================================================
+# RIGHT COLUMN: Ask Questions + Output
 # ======================================================
 with col2:
     st.subheader("Ask Questions")
@@ -107,7 +107,7 @@ with col2:
 
         question = st.text_input(
             "Enter your question:",
-            placeholder="Ask about this document or request quiz-style questions."
+            placeholder="Ask something from this document..."
         )
 
         if st.button("Get Answer"):
@@ -129,10 +129,15 @@ with col2:
                 st.session_state.last_context = context
                 st.session_state.last_question = question
 
-                st.subheader("🤖 AI Output")
-                st.text_area("Answer", value=answer, height=300)
+                # ✅ OUTPUT RIGHT HERE
+                st.markdown("### 🤖 AI Answer")
+                st.text_area(
+                    "Response",
+                    value=answer,
+                    height=250
+                )
 
-                st.subheader("📌 Sources")
+                st.markdown("### 📌 Sources")
                 for c in retrieved:
                     st.write(f"- {c['source']} | similarity: {c['score']:.4f}")
 
