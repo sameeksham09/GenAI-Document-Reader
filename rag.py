@@ -1,48 +1,17 @@
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
-import pickle
+"""One-off helper script to index `notes.txt` using the canonical retriever path."""
 
-# Load document
-with open("notes.txt", "r") as f:
-    text = f.read()
-
-# Step 1: Chunk the document
-def chunk_text(text, chunk_size=80):  # try 80 or 50
-    words = text.split()
-    chunks = []
-    for i in range(0, len(words), chunk_size):
-        chunks.append(" ".join(words[i:i+chunk_size]))
-    return chunks
+from retriver import index_text_document
 
 
-chunks = chunk_text(text)
+def main():
+    with open("notes.txt", "r") as f:
+        text = f.read()
 
-# Step 2: Create chunks with IDs
-chunks_with_ids = [{"id": i, "text": chunks[i]} for i in range(len(chunks))]
+    num_chunks = index_text_document(text, source="notes.txt")
 
-# Step 3: Load embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+    print("Number of chunks added:", num_chunks)
+    print("✅ Document indexed successfully via canonical path.")
 
-# Step 4: Create embeddings
-embeddings = model.encode([c["text"] for c in chunks_with_ids])
-embeddings = np.array(embeddings, dtype=np.float32)  # FAISS requires float32
 
-# Step 5: Store in FAISS
-dimension = embeddings.shape[1]
-index = faiss.IndexFlatL2(dimension)
-index.add(embeddings)
-
-# Step 6: Save everything
-with open("chunks.pkl", "wb") as f:
-    pickle.dump(chunks_with_ids, f)
-
-faiss.write_index(index, "doc_index.faiss")
-
-print("Number of chunks:", len(chunks_with_ids))
-for c in chunks_with_ids:
-    print("chunk id:", c["id"], "| words:", len(c["text"].split()))
-
-print("Embeddings shape:", embeddings.shape)
-
-print("✅ Document indexed successfully.")
+if __name__ == "__main__":
+    main()
