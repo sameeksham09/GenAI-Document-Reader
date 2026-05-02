@@ -1,5 +1,5 @@
 # generator.py
-from retriver import retrieve_context  # function that fetches relevant PDF chunks
+from retriever import retrieve_context  # function that fetches relevant PDF chunks
 from llm_utils import generate_answer
 from doc_analyzer import analyze_document
 

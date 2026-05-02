@@ -41,3 +41,15 @@ An end-to-end Retrieval-Augmented Generation (RAG) application that allows users
         * Prevents prior knowledge usage
         * Responds with "I don't know based on the provided document" when context is insufficient
     - Separate prompt logic for each question type.
+
+6. LLM backends (set `LLM_BACKEND` before running)
+    - **ollama** (default): local model via Ollama; no PyTorch in the app process.
+    - **openai**: OpenAI API; set `OPENAI_API_KEY`; may hit rate limits.
+    - **local_lora**: your fine-tuned TinyLlama+LoRA from `Training/lora-model`.
+      Use after training with `create_training_dataset.py` → `convert_to_instruction.py` → `Training/train_lora.py`.
+      On some macOS setups PyTorch can crash; use on Linux/Colab or stick to `ollama`/`openai`.
+
+7. Evaluation
+    - Held-out test set: `evaluation/test_qa.json` (add your own `question` + `reference` pairs).
+    - Run from project root: `python evaluation/run_eval.py`
+    - Reports **token F1** and **exact match** vs references. Optional: `EVAL_OUTPUT=results.json` to save results.

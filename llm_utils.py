@@ -17,7 +17,8 @@ Supports three backends (set LLM_BACKEND):
 LLM_BACKEND = os.getenv("LLM_BACKEND", "ollama").strip().lower()
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434").rstrip("/")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
+#OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:3b-instruct")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
@@ -45,7 +46,7 @@ def _generate_answer_ollama(prompt: str, max_new_tokens: int = 200) -> str:
                     "num_predict": max_new_tokens,
                 },
             },
-            timeout=120,
+            timeout=300,
         )
         if resp.status_code == 404:
             return (

@@ -1,4 +1,4 @@
-from retriver import retrieve_context
+from retriever import retrieve_context
 from prompts import get_instruction, build_prompt
 from generator import generate_answer
 

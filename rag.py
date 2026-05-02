@@ -1,6 +1,6 @@
 """One-off helper script to index `notes.txt` using the canonical retriever path."""
 
-from retriver import index_text_document
+from retriever import index_text_document
 
 
 def main():
