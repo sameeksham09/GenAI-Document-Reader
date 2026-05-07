@@ -3,12 +3,12 @@ import streamlit as st
 import pickle
 import os
 
-from retriever import retrieve_context, add_new_document
+from retriever import retrieve_context, add_new_document, get_all_documents, delete_document
 from prompts import get_instruction, build_prompt, build_rewrite_prompt
 from llm_utils import generate_answer
+from logger import log_query, load_logs, get_stats
 
 DOC_META_FILE = "doc_metadata.pkl"
-DOC_LIST_FILE = "uploaded_docs.pkl"
 
 st.set_page_config(page_title="📄 RAG QA System", layout="wide")
 st.title("📄 RAG QA System")
@@ -20,6 +20,7 @@ if "last_context"         not in st.session_state: st.session_state.last_context
 if "last_question"        not in st.session_state: st.session_state.last_question        = None
 if "chat_history"         not in st.session_state: st.session_state.chat_history         = []
 if "last_rewritten_query" not in st.session_state: st.session_state.last_rewritten_query = None
+if "confirm_delete"       not in st.session_state: st.session_state.confirm_delete       = False
 
 # ── Load metadata ──────────────────────────────────────────────────────────────
 def load_metadata():
@@ -28,21 +29,17 @@ def load_metadata():
             return pickle.load(f)
     return {}
 
-def load_doc_list():
-    if os.path.exists(DOC_LIST_FILE):
-        with open(DOC_LIST_FILE, "rb") as f:
-            return pickle.load(f)
-    return []
-
 metadata = load_metadata()
 
 # ── Layout ─────────────────────────────────────────────────────────────────────
 col1, col2 = st.columns(2)
 
 # ══════════════════════════════════════════════════════
-# LEFT COLUMN — Upload + doc selector + summary
+# LEFT COLUMN
 # ══════════════════════════════════════════════════════
 with col1:
+
+    # ── Upload ────────────────────────────────────────────────────────────────
     st.subheader("Upload a new document (TXT or PDF)")
     uploaded_file = st.file_uploader("Choose a file", type=["txt", "pdf"])
 
@@ -53,56 +50,84 @@ with col1:
         if added:
             st.success(f"✅ {uploaded_file.name} added successfully!")
             st.session_state.selected_doc = uploaded_file.name
-            metadata = load_metadata()   # reload after new upload
+            metadata = load_metadata()
         else:
-            # ─────────────────────────────────────────────────────────────────
-            # KEY FIX — persistent selected_doc across Streamlit reruns
-            #
-            # PROBLEM:
-            #   Streamlit reruns the entire script on every interaction
-            #   (button click, text input, selectbox change, etc.).
-            #   On rerun, file_uploader still holds the file, so the
-            #   `if uploaded_file:` block executes again. But now
-            #   add_new_document() returns False because the doc is already
-            #   indexed (deduplication skips it). So `selected_doc` never
-            #   gets set → right column shows "Please upload a document".
-            #
-            # FIX:
-            #   When add_new_document returns False (already indexed),
-            #   we still set selected_doc to the uploaded filename so the
-            #   right column stays unlocked. The doc is already in FAISS —
-            #   we just need to remember which one is active.
-            # ─────────────────────────────────────────────────────────────────
             st.session_state.selected_doc = uploaded_file.name
-
-            # Tell the user why there is no "added successfully" message.
-            # It is not an error — the doc is already indexed and ready.
-            doc_list_check = load_doc_list()
-            if uploaded_file.name in doc_list_check:
+            doc_list = get_all_documents()
+            if uploaded_file.name in doc_list:
                 st.info(f"📋 **{uploaded_file.name}** is already indexed and ready to use.")
 
-    # ── Document selector (if multiple docs uploaded) ─────────────────────────
-    # Shows a dropdown of all previously indexed documents so the user can
-    # switch between them without re-uploading.
-    doc_list = load_doc_list()
+    # ── Document selector ─────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
+    # WHAT CHANGED — doc list source
+    #
+    # BEFORE: loaded uploaded_docs.pkl (a separate pickle file we maintained)
+    # NOW:    calls get_all_documents() which queries ChromaDB metadata directly
+    #         Single source of truth — no pkl file to get out of sync
+    # ─────────────────────────────────────────────────────────────────────────
+    doc_list = get_all_documents()
+
     if doc_list:
         st.divider()
-        st.subheader("📂 Select Active Document")
+        st.subheader("📂 Indexed Documents")
+
         chosen = st.selectbox(
-            "Choose a document to query:",
+            "Select active document:",
             options=doc_list,
             index=doc_list.index(st.session_state.selected_doc)
                   if st.session_state.selected_doc in doc_list else 0
         )
         if chosen != st.session_state.selected_doc:
             st.session_state.selected_doc  = chosen
-            st.session_state.chat_history  = []   # clear history when switching docs
+            st.session_state.chat_history  = []
             st.session_state.last_context  = None
             st.session_state.last_question = None
+            st.session_state.confirm_delete = False
+
+        # ── Document deletion ─────────────────────────────────────────────────
+        # ─────────────────────────────────────────────────────────────────────
+        # NEW FEATURE — Document Deletion
+        #
+        # BEFORE (FAISS): Impossible without wiping the entire index.
+        #   When the resume got mixed in, the only fix was:
+        #     rm -f chunks.pkl doc_index.faiss uploaded_docs.pkl doc_metadata.pkl
+        #   That deleted EVERYTHING including the DBMS document.
+        #
+        # NOW (ChromaDB): Surgical delete in one line.
+        #   collection.delete(where={"source": filename})
+        #   Only that document's chunks are removed. Everything else untouched.
+        #
+        # UI pattern: two-step confirmation (click Delete → confirm)
+        #   Prevents accidental deletion. Standard UX pattern for destructive actions.
+        # ─────────────────────────────────────────────────────────────────────
+        st.divider()
+        st.subheader("🗑️ Document Management")
+
+        if not st.session_state.confirm_delete:
+            if st.button(f"🗑️ Delete '{chosen}' from index"):
+                st.session_state.confirm_delete = True
+                st.rerun()
+        else:
+            st.warning(f"Are you sure you want to delete **{chosen}**? This cannot be undone.")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("✅ Yes, delete it"):
+                    delete_document(chosen)
+                    st.session_state.selected_doc   = None
+                    st.session_state.chat_history   = []
+                    st.session_state.last_context   = None
+                    st.session_state.last_question  = None
+                    st.session_state.confirm_delete = False
+                    st.success(f"✅ '{chosen}' deleted from index.")
+                    st.rerun()
+            with c2:
+                if st.button("❌ Cancel"):
+                    st.session_state.confirm_delete = False
+                    st.rerun()
 
     # ── Summary ───────────────────────────────────────────────────────────────
     st.divider()
-    st.subheader("📄 Document Summary / Insights")
+    st.subheader("📄 Document Summary")
     if not st.session_state.selected_doc:
         st.info("Upload a document to view its summary.")
     else:
@@ -118,8 +143,63 @@ with col1:
         st.session_state.last_rewritten_query = None
         st.success("Conversation cleared.")
 
+    # ── Activity Log ──────────────────────────────────────────────────────────
+    # ─────────────────────────────────────────────────────────────────────────
+    # NEW FEATURE — Activity Log
+    #
+    # Shows a real-time record of all uploads, deletes, and queries.
+    # Loaded from activity_log.jsonl — one JSON line per event.
+    #
+    # Stats panel: total uploads, deletes, queries, most queried doc.
+    # Event list : last 20 events in reverse chronological order (newest first).
+    #
+    # WHY IN AN EXPANDER:
+    #   The left column is already busy. An expander keeps it clean —
+    #   users who want the log can open it, others never see it.
+    # ─────────────────────────────────────────────────────────────────────────
+    st.divider()
+    with st.expander("📋 Activity Log", expanded=False):
+
+        # ── Stats ─────────────────────────────────────────────────────────
+        stats = get_stats()
+        s1, s2, s3 = st.columns(3)
+        s1.metric("📤 Uploads",  stats["total_uploads"])
+        s2.metric("❓ Queries",  stats["total_queries"])
+        s3.metric("🗑️ Deletes",  stats["total_deletes"])
+
+        if stats["most_queried"] != "—":
+            st.caption(f"Most queried: **{stats['most_queried']}**")
+
+        st.divider()
+
+        # ── Event list ────────────────────────────────────────────────────
+        logs = load_logs(last_n=20)
+        if not logs:
+            st.info("No activity yet. Upload a document to get started.")
+        else:
+            # Show newest first
+            for entry in reversed(logs):
+                ts    = entry.get("timestamp", "")
+                event = entry.get("event", "")
+
+                if event == "upload":
+                    st.markdown(
+                        f"✅ `{ts}` **Uploaded** {entry.get('filename','')} "
+                        f"— {entry.get('chunks', 0)} chunks"
+                    )
+                elif event == "delete":
+                    st.markdown(
+                        f"🗑️ `{ts}` **Deleted** {entry.get('filename','')}"
+                    )
+                elif event == "query":
+                    q   = entry.get("question", "")[:60]
+                    doc = entry.get("doc", "")
+                    st.markdown(
+                        f"❓ `{ts}` **Asked** \"{q}...\" → `{doc}`"
+                    )
+
 # ══════════════════════════════════════════════════════
-# RIGHT COLUMN — Ask questions + output
+# RIGHT COLUMN
 # ══════════════════════════════════════════════════════
 with col2:
     st.subheader("Ask Questions")
@@ -156,24 +236,12 @@ with col2:
                     with st.spinner("🔄 Resolving question context..."):
                         rewrite_prompt  = build_rewrite_prompt(question, st.session_state.chat_history)
                         rewritten_query = generate_answer(rewrite_prompt, max_new_tokens=80)
-
-                        # ── Extract just the first line ───────────────────────
-                        # Small LLMs (TinyLlama etc.) often continue generating
-                        # beyond the rewritten query — adding "Answer: ..." or
-                        # repeating the conversation. We only want the very first
-                        # non-empty line, which is always the rewritten query.
                         lines = [l.strip() for l in rewritten_query.splitlines() if l.strip()]
                         rewritten_query = lines[0] if lines else question
-
-                        # Strip known label prefixes the LLM might echo
                         for prefix in ["Rewritten query:", "Rewritten:", "Query:", "Question:"]:
                             if rewritten_query.lower().startswith(prefix.lower()):
                                 rewritten_query = rewritten_query[len(prefix):].strip()
-
-                        # Strip surrounding quotes if present ("query" → query)
                         rewritten_query = rewritten_query.strip('"\'')
-
-                        # Fallback: if result is still too short, use original
                         if len(rewritten_query) < 5:
                             rewritten_query = question
                     st.session_state.last_rewritten_query = rewritten_query
@@ -189,27 +257,30 @@ with col2:
                     st.warning("I don't know based on the provided document.")
                 else:
                     context = "\n".join(c["text"] for c in retrieved)
-
-                    # ── Prompt + generation ───────────────────────────────────
-                    prompt = build_prompt(
+                    prompt  = build_prompt(
                         context, instruction, question,
                         chat_history=st.session_state.chat_history
                     )
                     with st.spinner("🤖 Generating answer..."):
                         answer = generate_answer(prompt)
 
-                    # ── Save state ────────────────────────────────────────────
                     st.session_state.last_context  = context
                     st.session_state.last_question = question
                     st.session_state.chat_history.append({"question": question, "answer": answer})
                     st.session_state.chat_history = st.session_state.chat_history[-5:]
 
-                    # ── Rewritten query expander ──────────────────────────────
+                    # Log the query event
+                    log_query(
+                        question=question,
+                        rewritten_query=rewritten_query,
+                        selected_doc=active_doc,
+                        num_chunks_retrieved=len(retrieved)
+                    )
+
                     if st.session_state.last_rewritten_query:
                         with st.expander("🔍 Retrieval query used (after rewriting)"):
                             st.caption(st.session_state.last_rewritten_query)
 
-                    # ── Conversation history ──────────────────────────────────
                     if len(st.session_state.chat_history) > 1:
                         st.markdown("### 💬 Conversation History")
                         for turn in st.session_state.chat_history[:-1]:
@@ -217,23 +288,32 @@ with col2:
                             st.markdown(f"**A:** {turn['answer']}")
                             st.divider()
 
-                    # ── Answer ────────────────────────────────────────────────
                     st.markdown("### 🤖 AI Answer")
                     st.text_area("Response", value=answer, height=250)
 
                     # ── Sources ───────────────────────────────────────────────
+                    # ─────────────────────────────────────────────────────────
+                    # WHAT CHANGED — distance metric label
+                    #
+                    # BEFORE: "FAISS dist" (L2 distance, lower = better)
+                    # NOW:    "Cosine dist" (cosine distance, lower = better)
+                    #
+                    # Cosine distance = 1 - cosine_similarity
+                    # Range: 0 (identical) to 2 (opposite)
+                    # A score of 0.3 means 70% cosine similarity — good match.
+                    # ─────────────────────────────────────────────────────────
                     st.markdown("### 📌 Sources")
                     for i, c in enumerate(retrieved, 1):
-                        faiss_score  = c.get("score", 0)
+                        cos_dist     = c.get("score", 0)
                         rerank_score = c.get("rerank_score", None)
                         if rerank_score is not None:
                             st.write(
                                 f"**#{i}** `{c['source']}` | "
-                                f"FAISS dist: `{faiss_score:.4f}` | "
+                                f"Cosine dist: `{cos_dist:.4f}` | "
                                 f"Rerank score: `{rerank_score:.4f}`"
                             )
                         else:
-                            st.write(f"**#{i}** `{c['source']}` | FAISS dist: `{faiss_score:.4f}`")
+                            st.write(f"**#{i}** `{c['source']}` | Cosine dist: `{cos_dist:.4f}`")
 
     # ── Smart Follow-ups ───────────────────────────────────────────────────────
     if st.session_state.last_context and st.session_state.last_question:

@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question": "What is a DBMS?",
+    "reference": "A Database Management System (DBMS) is software that enables users to define, create, maintain, and control access to a database. It acts as an interface between the end-user and the database.",
+    "topic": "introduction"
+  },
+  {
+    "id": 2,
+    "question": "What problems did flat file storage cause before DBMS?",
+    "reference": "Flat file storage caused data redundancy where the same data was stored in multiple places, data inconsistency where different files had different values for the same data, and difficulty in accessing data.",
+    "topic": "introduction"
+  },
+  {
+    "id": 3,
+    "question": "What are common examples of DBMS?",
+    "reference": "Common examples of DBMS include MySQL, PostgreSQL, Oracle Database, Microsoft SQL Server, and SQLite.",
+    "topic": "introduction"
+  },
+  {
+    "id": 4,
+    "question": "What are the four main types of DBMS?",
+    "reference": "The four main types of DBMS are hierarchical, network, relational, and object-oriented.",
+    "topic": "types"
+  },
+  {
+    "id": 5,
+    "question": "What is a relational DBMS?",
+    "reference": "Relational DBMS organizes data into tables consisting of rows and columns. Tables can be linked using keys. SQL is the standard language for querying relational databases. MySQL and PostgreSQL are popular RDBMS examples.",
+    "topic": "types"
+  },
+  {
+    "id": 6,
+    "question": "What is a primary key?",
+    "reference": "A primary key is a column or combination of columns that uniquely identifies each row in a table. No two rows can have the same primary key value, and primary keys cannot be NULL.",
+    "topic": "key_concepts"
+  },
+  {
+    "id": 7,
+    "question": "What is a foreign key?",
+    "reference": "A foreign key is a column in one table that refers to the primary key of another table. It is used to establish and enforce a link between the data in two tables.",
+    "topic": "key_concepts"
+  },
+  {
+    "id": 8,
+    "question": "What is a schema in a database?",
+    "reference": "A schema is the logical structure or blueprint of the database. It defines the tables, their columns, data types, and the relationships between tables.",
+    "topic": "key_concepts"
+  },
+  {
+    "id": 9,
+    "question": "What does ACID stand for?",
+    "reference": "ACID stands for Atomicity, Consistency, Isolation, and Durability. It is a set of properties that guarantee reliable processing of database transactions.",
+    "topic": "acid"
+  },
+  {
+    "id": 10,
+    "question": "What is Atomicity in ACID?",
+    "reference": "Atomicity means that a transaction is treated as a single unit. Either all operations in the transaction are completed successfully, or none of them are. If any operation fails, the entire transaction is rolled back.",
+    "topic": "acid"
+  },
+  {
+    "id": 11,
+    "question": "What is Isolation in ACID?",
+    "reference": "Isolation means that concurrent transactions are executed as if they were sequential. The intermediate state of a transaction is not visible to other transactions.",
+    "topic": "acid"
+  },
+  {
+    "id": 12,
+    "question": "What is Durability in ACID?",
+    "reference": "Durability guarantees that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
+    "topic": "acid"
+  },
+  {
+    "id": 13,
+    "question": "What is normalization in databases?",
+    "reference": "Normalization is the process of organizing a relational database to reduce data redundancy and improve data integrity. It involves dividing large tables into smaller related tables and defining relationships between them.",
+    "topic": "normalization"
+  },
+  {
+    "id": 14,
+    "question": "What is First Normal Form?",
+    "reference": "A table is in First Normal Form if every column contains atomic indivisible values and each column contains values of a single type. There are no repeating groups.",
+    "topic": "normalization"
+  },
+  {
+    "id": 15,
+    "question": "What is an index in a database?",
+    "reference": "An index is a data structure that improves the speed of data retrieval operations on a database table. Without an index the database must scan every row in a table to find matching rows which is slow for large tables.",
+    "topic": "indexing"
+  },
+  {
+    "id": 16,
+    "question": "What is a deadlock in DBMS?",
+    "reference": "A deadlock occurs when two transactions are waiting for each other to release locks, causing both to be stuck indefinitely. DBMS uses deadlock detection and resolution strategies like aborting one of the transactions.",
+    "topic": "transactions"
+  },
+  {
+    "id": 17,
+    "question": "What is DDL in SQL?",
+    "reference": "DDL stands for Data Definition Language. DDL commands define the structure of the database. CREATE TABLE creates a new table, ALTER TABLE modifies an existing table, and DROP TABLE deletes a table.",
+    "topic": "sql"
+  },
+  {
+    "id": 18,
+    "question": "What is DML in SQL?",
+    "reference": "DML stands for Data Manipulation Language. DML commands manipulate data. SELECT retrieves data, INSERT adds new rows, UPDATE modifies existing rows, and DELETE removes rows.",
+    "topic": "sql"
+  },
+  {
+    "id": 19,
+    "question": "What are the advantages of DBMS over file-based systems?",
+    "reference": "DBMS minimizes data redundancy, maintains data consistency, improves data security through access control, enforces data integrity through constraints, simplifies backup and recovery, and efficiently manages concurrent access by multiple users.",
+    "topic": "advantages"
+  },
+  {
+    "id": 20,
+    "question": "What are the disadvantages of DBMS?",
+    "reference": "The disadvantages of DBMS include high initial cost of purchasing and setting up, requirement for skilled database administrators, complexity to configure and tune, dependency risk where all applications are affected if DBMS fails, and overkill for simple applications compared to flat files.",
+    "topic": "disadvantages"
+  }
+]

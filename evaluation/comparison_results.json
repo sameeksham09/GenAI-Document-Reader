@@ -1,0 +1,98 @@
+{
+  "tinyllama": {
+    "model": "tinyllama",
+    "ret_prec": 1.0,
+    "avg_f1": 0.444,
+    "exact_match": 0.8,
+    "topic_scores": {
+      "introduction": {
+        "f1": 0.55,
+        "em": 1.0
+      },
+      "types": {
+        "f1": 0.43,
+        "em": 0.5
+      },
+      "key_concepts": {
+        "f1": 0.53,
+        "em": 1.0
+      },
+      "acid": {
+        "f1": 0.37,
+        "em": 1.0
+      },
+      "normalization": {
+        "f1": 0.35,
+        "em": 0.5
+      },
+      "indexing": {
+        "f1": 0.69,
+        "em": 1.0
+      },
+      "transactions": {
+        "f1": 0.73,
+        "em": 1.0
+      },
+      "sql": {
+        "f1": 0.27,
+        "em": 0.5
+      },
+      "advantages": {
+        "f1": 0.14,
+        "em": 0.0
+      },
+      "disadvantages": {
+        "f1": 0.5,
+        "em": 1.0
+      }
+    }
+  },
+  "llama3.2": {
+    "model": "llama3.2",
+    "ret_prec": 1.0,
+    "avg_f1": 0.7319,
+    "exact_match": 0.7,
+    "topic_scores": {
+      "introduction": {
+        "f1": 0.89,
+        "em": 1.0
+      },
+      "types": {
+        "f1": 0.42,
+        "em": 0.5
+      },
+      "key_concepts": {
+        "f1": 0.91,
+        "em": 1.0
+      },
+      "acid": {
+        "f1": 0.8,
+        "em": 0.75
+      },
+      "normalization": {
+        "f1": 0.86,
+        "em": 1.0
+      },
+      "indexing": {
+        "f1": 0.67,
+        "em": 0.0
+      },
+      "transactions": {
+        "f1": 0.75,
+        "em": 1.0
+      },
+      "sql": {
+        "f1": 0.64,
+        "em": 0.5
+      },
+      "advantages": {
+        "f1": 0.33,
+        "em": 0.0
+      },
+      "disadvantages": {
+        "f1": 0.46,
+        "em": 0.0
+      }
+    }
+  }
+}

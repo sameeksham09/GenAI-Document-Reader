@@ -1,5 +1,25 @@
-venv/
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# FAISS index and chunk files (optional)
+chunks.pkl
+chunks.npy
+doc_index.faiss
+uploaded_docs.pkl
+doc_metadata.pkl
+training_data.jsonl
+instruction_data.jsonl
+
+# MacOS
 .DS_Store
 
+# Logs
+*.log

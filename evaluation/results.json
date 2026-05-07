@@ -1,0 +1,302 @@
+{
+  "summary": {
+    "total_questions": 20,
+    "retrieval_precision": 1.0,
+    "avg_token_f1": 0.7329,
+    "exact_match": 0.7
+  },
+  "per_topic": {
+    "introduction": {
+      "retrieval": 1.0,
+      "token_f1": 0.89,
+      "exact_match": 1.0
+    },
+    "types": {
+      "retrieval": 1.0,
+      "token_f1": 0.61,
+      "exact_match": 0.5
+    },
+    "key_concepts": {
+      "retrieval": 1.0,
+      "token_f1": 0.85,
+      "exact_match": 1.0
+    },
+    "acid": {
+      "retrieval": 1.0,
+      "token_f1": 0.8,
+      "exact_match": 0.75
+    },
+    "normalization": {
+      "retrieval": 1.0,
+      "token_f1": 0.86,
+      "exact_match": 1.0
+    },
+    "indexing": {
+      "retrieval": 1.0,
+      "token_f1": 0.62,
+      "exact_match": 0.0
+    },
+    "transactions": {
+      "retrieval": 1.0,
+      "token_f1": 0.75,
+      "exact_match": 1.0
+    },
+    "sql": {
+      "retrieval": 1.0,
+      "token_f1": 0.51,
+      "exact_match": 0.0
+    },
+    "advantages": {
+      "retrieval": 1.0,
+      "token_f1": 0.29,
+      "exact_match": 0.0
+    },
+    "disadvantages": {
+      "retrieval": 1.0,
+      "token_f1": 0.65,
+      "exact_match": 1.0
+    }
+  },
+  "results": [
+    {
+      "id": 1,
+      "question": "What is a DBMS?",
+      "topic": "introduction",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 9.909660339355469,
+      "reference": "A Database Management System (DBMS) is software that enables users to define, create, maintain, and control access to a database. It acts as an interface between the end-user and the database.",
+      "generated_answer": "A Database Management System (DBMS) is software that enables users to define, create, maintain, and control access to a database. It acts as an interface between the end-user and the database, ensuring that data is consistently organized and remains easily accessible.",
+      "token_f1": 0.8649,
+      "exact_match": 1
+    },
+    {
+      "id": 2,
+      "question": "What problems did flat file storage cause before DBMS?",
+      "topic": "introduction",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 8.449945449829102,
+      "reference": "Flat file storage caused data redundancy where the same data was stored in multiple places, data inconsistency where different files had different values for the same data, and difficulty in accessing data.",
+      "generated_answer": "Flat file storage caused problems like data redundancy (same data stored in multiple places) and data inconsistency (different files having different values for the same data).",
+      "token_f1": 0.7931,
+      "exact_match": 1
+    },
+    {
+      "id": 3,
+      "question": "What are common examples of DBMS?",
+      "topic": "introduction",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 9.973209381103516,
+      "reference": "Common examples of DBMS include MySQL, PostgreSQL, Oracle Database, Microsoft SQL Server, and SQLite.",
+      "generated_answer": "Common examples of DBMS include MySQL, PostgreSQL, Oracle Database, Microsoft SQL Server, and SQLite.",
+      "token_f1": 1.0,
+      "exact_match": 1
+    },
+    {
+      "id": 4,
+      "question": "What are the four main types of DBMS?",
+      "topic": "types",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 9.39358901977539,
+      "reference": "The four main types of DBMS are hierarchical, network, relational, and object-oriented.",
+      "generated_answer": "The four main types of DBMS are:\n\n1. Hierarchical DBMS\n2. Network DBMS\n3. Object-Oriented DBMS\n4. Relational DBMS (RDBMS)",
+      "token_f1": 0.7059,
+      "exact_match": 1
+    },
+    {
+      "id": 5,
+      "question": "What is a relational DBMS?",
+      "topic": "types",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 9.020151138305664,
+      "reference": "Relational DBMS organizes data into tables consisting of rows and columns. Tables can be linked using keys. SQL is the standard language for querying relational databases. MySQL and PostgreSQL are popular RDBMS examples.",
+      "generated_answer": "A relational DBMS (RDBMS) organizes data into tables consisting of rows and columns.",
+      "token_f1": 0.5217,
+      "exact_match": 0
+    },
+    {
+      "id": 6,
+      "question": "What is a primary key?",
+      "topic": "key_concepts",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 7.279505729675293,
+      "reference": "A primary key is a column or combination of columns that uniquely identifies each row in a table. No two rows can have the same primary key value, and primary keys cannot be NULL.",
+      "generated_answer": "A primary key is a column (or combination of columns) that uniquely identifies each row in a table.",
+      "token_f1": 0.6923,
+      "exact_match": 1
+    },
+    {
+      "id": 7,
+      "question": "What is a foreign key?",
+      "topic": "key_concepts",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 6.200597763061523,
+      "reference": "A foreign key is a column in one table that refers to the primary key of another table. It is used to establish and enforce a link between the data in two tables.",
+      "generated_answer": "A foreign key is a column in one table that refers to the primary key of another table, used to establish and enforce a link (relationship) between the data in two tables.",
+      "token_f1": 0.9538,
+      "exact_match": 1
+    },
+    {
+      "id": 8,
+      "question": "What is a schema in a database?",
+      "topic": "key_concepts",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 7.680685997009277,
+      "reference": "A schema is the logical structure or blueprint of the database. It defines the tables, their columns, data types, and the relationships between tables.",
+      "generated_answer": "A schema is the logical structure or blueprint of the database, defining tables, their columns, data types, and relationships between tables.",
+      "token_f1": 0.8889,
+      "exact_match": 1
+    },
+    {
+      "id": 9,
+      "question": "What does ACID stand for?",
+      "topic": "acid",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 2.9172873497009277,
+      "reference": "ACID stands for Atomicity, Consistency, Isolation, and Durability. It is a set of properties that guarantee reliable processing of database transactions.",
+      "generated_answer": "ACID stands for Atomicity, Consistency, Isolation, and Durability.",
+      "token_f1": 0.5517,
+      "exact_match": 0
+    },
+    {
+      "id": 10,
+      "question": "What is Atomicity in ACID?",
+      "topic": "acid",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 6.639406204223633,
+      "reference": "Atomicity means that a transaction is treated as a single unit. Either all operations in the transaction are completed successfully, or none of them are. If any operation fails, the entire transaction is rolled back.",
+      "generated_answer": "Atomicity means that a transaction is treated as a single unit. Either all operations in the transaction are completed successfully, or none of them are. If any operation fails, the entire transaction is rolled back.",
+      "token_f1": 1.0,
+      "exact_match": 1
+    },
+    {
+      "id": 11,
+      "question": "What is Isolation in ACID?",
+      "topic": "acid",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": -2.9888916015625,
+      "reference": "Isolation means that concurrent transactions are executed as if they were sequential. The intermediate state of a transaction is not visible to other transactions.",
+      "generated_answer": "Isolation means that concurrent transactions are executed as if they were sequential.",
+      "token_f1": 0.6667,
+      "exact_match": 1
+    },
+    {
+      "id": 12,
+      "question": "What is Durability in ACID?",
+      "topic": "acid",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": -3.828855276107788,
+      "reference": "Durability guarantees that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
+      "generated_answer": "Durability means that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
+      "token_f1": 0.9643,
+      "exact_match": 1
+    },
+    {
+      "id": 13,
+      "question": "What is normalization in databases?",
+      "topic": "normalization",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 8.263456344604492,
+      "reference": "Normalization is the process of organizing a relational database to reduce data redundancy and improve data integrity. It involves dividing large tables into smaller related tables and defining relationships between them.",
+      "generated_answer": "Normalization is the process of organizing a relational database by dividing large tables into smaller, related tables and defining relationships between them.",
+      "token_f1": 0.7925,
+      "exact_match": 1
+    },
+    {
+      "id": 14,
+      "question": "What is First Normal Form?",
+      "topic": "normalization",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 5.463973522186279,
+      "reference": "A table is in First Normal Form if every column contains atomic indivisible values and each column contains values of a single type. There are no repeating groups.",
+      "generated_answer": "A table is in 1NF if every column contains atomic (indivisible) values and each column contains values of a single type. There are no repeating groups.",
+      "token_f1": 0.9259,
+      "exact_match": 1
+    },
+    {
+      "id": 15,
+      "question": "What is an index in a database?",
+      "topic": "indexing",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 7.065397262573242,
+      "reference": "An index is a data structure that improves the speed of data retrieval operations on a database table. Without an index the database must scan every row in a table to find matching rows which is slow for large tables.",
+      "generated_answer": "An index is a data structure that improves the speed of data retrieval operations on a database table.",
+      "token_f1": 0.6207,
+      "exact_match": 0
+    },
+    {
+      "id": 16,
+      "question": "What is a deadlock in DBMS?",
+      "topic": "transactions",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 6.887826442718506,
+      "reference": "A deadlock occurs when two transactions are waiting for each other to release locks, causing both to be stuck indefinitely. DBMS uses deadlock detection and resolution strategies like aborting one of the transactions.",
+      "generated_answer": "A deadlock occurs when two transactions are waiting for each other to release locks, causing both to be stuck indefinitely.",
+      "token_f1": 0.7547,
+      "exact_match": 1
+    },
+    {
+      "id": 17,
+      "question": "What is DDL in SQL?",
+      "topic": "sql",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 6.012824535369873,
+      "reference": "DDL stands for Data Definition Language. DDL commands define the structure of the database. CREATE TABLE creates a new table, ALTER TABLE modifies an existing table, and DROP TABLE deletes a table.",
+      "generated_answer": "DDL stands for Data Definition Language, and it defines the structure of the database.",
+      "token_f1": 0.5217,
+      "exact_match": 0
+    },
+    {
+      "id": 18,
+      "question": "What is DML in SQL?",
+      "topic": "sql",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 3.065812826156616,
+      "reference": "DML stands for Data Manipulation Language. DML commands manipulate data. SELECT retrieves data, INSERT adds new rows, UPDATE modifies existing rows, and DELETE removes rows.",
+      "generated_answer": "DML stands for Data Manipulation Language, which includes commands such as INSERT, UPDATE, and DELETE (implied by DROP TABLE).",
+      "token_f1": 0.5,
+      "exact_match": 0
+    },
+    {
+      "id": 19,
+      "question": "What are the advantages of DBMS over file-based systems?",
+      "topic": "advantages",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 9.633379936218262,
+      "reference": "DBMS minimizes data redundancy, maintains data consistency, improves data security through access control, enforces data integrity through constraints, simplifies backup and recovery, and efficiently manages concurrent access by multiple users.",
+      "generated_answer": "According to the context, the advantages of DBMS over traditional file-based systems include:\n\n1. Data redundancy is minimized because data is stored in one place and shared across applications.\n2. Data consistency is maintained because all applications use the same data source.\n3. Data security is improved through access control mechanisms.",
+      "token_f1": 0.2927,
+      "exact_match": 0
+    },
+    {
+      "id": 20,
+      "question": "What are the disadvantages of DBMS?",
+      "topic": "disadvantages",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 8.431385040283203,
+      "reference": "The disadvantages of DBMS include high initial cost of purchasing and setting up, requirement for skilled database administrators, complexity to configure and tune, dependency risk where all applications are affected if DBMS fails, and overkill for simple applications compared to flat files.",
+      "generated_answer": "The initial cost of purchasing and setting up a DBMS is high. It requires skilled database administrators (DBAs) to manage and maintain. DBMS systems can be complex to configure and tune, and if the DBMS fails, all applications that depend on it may be affected. For simple applications, a DBMS can be overkill compared to flat files.",
+      "token_f1": 0.6465,
+      "exact_match": 1
+    }
+  ]
+}
