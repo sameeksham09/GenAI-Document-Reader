@@ -118,5 +118,23 @@
     "question": "What are the disadvantages of DBMS?",
     "reference": "The disadvantages of DBMS include high initial cost of purchasing and setting up, requirement for skilled database administrators, complexity to configure and tune, dependency risk where all applications are affected if DBMS fails, and overkill for simple applications compared to flat files.",
     "topic": "disadvantages"
+  },
+  {
+    "id": 21,
+    "question": "What is BCNF?",
+    "reference": "Boyce-Codd Normal Form is a stronger version of Third Normal Form. A table is in BCNF if for every functional dependency the left-hand side is a superkey.",
+    "topic": "normalization"
+  },
+  {
+    "id": 22,
+    "question": "What does DML stand for?",
+    "reference": "DML stands for Data Manipulation Language. DML commands manipulate data and include SELECT which retrieves data, INSERT which adds new rows, UPDATE which modifies existing rows, and DELETE which removes rows.",
+    "topic": "sql"
+  },
+  {
+    "id": 23,
+    "question": "What does DDL stand for and what commands does it include?",
+    "reference": "DDL stands for Data Definition Language. DDL commands define the structure of the database and include CREATE TABLE which creates a new table, ALTER TABLE which modifies an existing table, and DROP TABLE which deletes a table.",
+    "topic": "sql"
   }
 ]

@@ -1,9 +1,9 @@
 {
   "summary": {
-    "total_questions": 20,
+    "total_questions": 23,
     "retrieval_precision": 1.0,
-    "avg_token_f1": 0.7329,
-    "exact_match": 0.7
+    "avg_token_f1": 0.7086,
+    "exact_match": 0.6522
   },
   "per_topic": {
     "introduction": {
@@ -13,7 +13,7 @@
     },
     "types": {
       "retrieval": 1.0,
-      "token_f1": 0.61,
+      "token_f1": 0.43,
       "exact_match": 0.5
     },
     "key_concepts": {
@@ -23,12 +23,12 @@
     },
     "acid": {
       "retrieval": 1.0,
-      "token_f1": 0.8,
+      "token_f1": 0.89,
       "exact_match": 0.75
     },
     "normalization": {
       "retrieval": 1.0,
-      "token_f1": 0.86,
+      "token_f1": 0.87,
       "exact_match": 1.0
     },
     "indexing": {
@@ -43,8 +43,8 @@
     },
     "sql": {
       "retrieval": 1.0,
-      "token_f1": 0.51,
-      "exact_match": 0.0
+      "token_f1": 0.49,
+      "exact_match": 0.25
     },
     "advantages": {
       "retrieval": 1.0,
@@ -53,8 +53,8 @@
     },
     "disadvantages": {
       "retrieval": 1.0,
-      "token_f1": 0.65,
-      "exact_match": 1.0
+      "token_f1": 0.47,
+      "exact_match": 0.0
     }
   },
   "results": [
@@ -102,8 +102,8 @@
       "ret_precision": 1,
       "top_rerank_score": 9.39358901977539,
       "reference": "The four main types of DBMS are hierarchical, network, relational, and object-oriented.",
-      "generated_answer": "The four main types of DBMS are:\n\n1. Hierarchical DBMS\n2. Network DBMS\n3. Object-Oriented DBMS\n4. Relational DBMS (RDBMS)",
-      "token_f1": 0.7059,
+      "generated_answer": "The context mentions that there are four main types of DBMS, but it only provides information about two of them: Hierarchical and Network. The other two types are mentioned as RDBMS (Relational) and Object-Oriented DBMS.\n\nSince the question asks for the \"four main types\" without specifying which ones, we can infer that the context is missing information about the remaining two types.",
+      "token_f1": 0.3421,
       "exact_match": 1
     },
     {
@@ -186,8 +186,8 @@
       "ret_precision": 1,
       "top_rerank_score": -2.9888916015625,
       "reference": "Isolation means that concurrent transactions are executed as if they were sequential. The intermediate state of a transaction is not visible to other transactions.",
-      "generated_answer": "Isolation means that concurrent transactions are executed as if they were sequential.",
-      "token_f1": 0.6667,
+      "generated_answer": "Isolation means that concurrent transactions are executed as if they were sequential. The intermediate state of a transaction is not visible to other transactions.",
+      "token_f1": 1.0,
       "exact_match": 1
     },
     {
@@ -198,8 +198,8 @@
       "ret_precision": 1,
       "top_rerank_score": -3.828855276107788,
       "reference": "Durability guarantees that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
-      "generated_answer": "Durability means that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
-      "token_f1": 0.9643,
+      "generated_answer": "Durability guarantees that once a transaction has been committed, it will remain committed even in the case of a system failure. The data is saved to persistent storage.",
+      "token_f1": 1.0,
       "exact_match": 1
     },
     {
@@ -258,8 +258,8 @@
       "ret_precision": 1,
       "top_rerank_score": 6.012824535369873,
       "reference": "DDL stands for Data Definition Language. DDL commands define the structure of the database. CREATE TABLE creates a new table, ALTER TABLE modifies an existing table, and DROP TABLE deletes a table.",
-      "generated_answer": "DDL stands for Data Definition Language, and it defines the structure of the database.",
-      "token_f1": 0.5217,
+      "generated_answer": "DDL stands for Data Definition Language, which defines the structure of the database.",
+      "token_f1": 0.4889,
       "exact_match": 0
     },
     {
@@ -270,8 +270,8 @@
       "ret_precision": 1,
       "top_rerank_score": 3.065812826156616,
       "reference": "DML stands for Data Manipulation Language. DML commands manipulate data. SELECT retrieves data, INSERT adds new rows, UPDATE modifies existing rows, and DELETE removes rows.",
-      "generated_answer": "DML stands for Data Manipulation Language, which includes commands such as INSERT, UPDATE, and DELETE (implied by DROP TABLE).",
-      "token_f1": 0.5,
+      "generated_answer": "DML stands for Data Manipulation Language, which includes commands like INSERT, UPDATE, and DELETE to manipulate data.",
+      "token_f1": 0.619,
       "exact_match": 0
     },
     {
@@ -294,8 +294,44 @@
       "ret_precision": 1,
       "top_rerank_score": 8.431385040283203,
       "reference": "The disadvantages of DBMS include high initial cost of purchasing and setting up, requirement for skilled database administrators, complexity to configure and tune, dependency risk where all applications are affected if DBMS fails, and overkill for simple applications compared to flat files.",
-      "generated_answer": "The initial cost of purchasing and setting up a DBMS is high. It requires skilled database administrators (DBAs) to manage and maintain. DBMS systems can be complex to configure and tune, and if the DBMS fails, all applications that depend on it may be affected. For simple applications, a DBMS can be overkill compared to flat files.",
-      "token_f1": 0.6465,
+      "generated_answer": "The initial cost of purchasing and setting up a DBMS is high. It requires skilled database administrators (DBAs) to manage and maintain.",
+      "token_f1": 0.4688,
+      "exact_match": 0
+    },
+    {
+      "id": 21,
+      "question": "What is BCNF?",
+      "topic": "normalization",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 5.754638671875,
+      "reference": "Boyce-Codd Normal Form is a stronger version of Third Normal Form. A table is in BCNF if for every functional dependency the left-hand side is a superkey.",
+      "generated_answer": "Boyce-Codd Normal Form (BCNF): A stronger version of 3NF. A table is in BCNF if for every functional dependency, the left-hand side is a superkey.",
+      "token_f1": 0.8929,
+      "exact_match": 1
+    },
+    {
+      "id": 22,
+      "question": "What does DML stand for?",
+      "topic": "sql",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 3.7319729328155518,
+      "reference": "DML stands for Data Manipulation Language. DML commands manipulate data and include SELECT which retrieves data, INSERT which adds new rows, UPDATE which modifies existing rows, and DELETE which removes rows.",
+      "generated_answer": "DML stands for Data Manipulation Language.",
+      "token_f1": 0.3243,
+      "exact_match": 0
+    },
+    {
+      "id": 23,
+      "question": "What does DDL stand for and what commands does it include?",
+      "topic": "sql",
+      "retrieved": true,
+      "ret_precision": 1,
+      "top_rerank_score": 4.598461151123047,
+      "reference": "DDL stands for Data Definition Language. DDL commands define the structure of the database and include CREATE TABLE which creates a new table, ALTER TABLE which modifies an existing table, and DROP TABLE which deletes a table.",
+      "generated_answer": "DDL stands for Data Definition Language, and it includes commands such as:\n\n- CREATE TABLE\n- ALTER TABLE\n- DROP TABLE",
+      "token_f1": 0.5091,
       "exact_match": 1
     }
   ]

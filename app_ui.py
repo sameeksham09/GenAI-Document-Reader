@@ -5,7 +5,7 @@ import os
 
 from retriever import retrieve_context, add_new_document, get_all_documents, delete_document
 from prompts import get_instruction, build_prompt, build_rewrite_prompt
-from llm_utils import generate_answer
+from llm_utils import generate_answer, generate_answer_stream
 from logger import log_query, load_logs, get_stats
 
 DOC_META_FILE = "doc_metadata.pkl"
@@ -261,8 +261,43 @@ with col2:
                         context, instruction, question,
                         chat_history=st.session_state.chat_history
                     )
-                    with st.spinner("🤖 Generating answer..."):
-                        answer = generate_answer(prompt)
+
+                    # ── Streaming generation ──────────────────────────────────
+                    # ─────────────────────────────────────────────────────────
+                    # WHAT CHANGED — answer generation + display
+                    #
+                    # BEFORE:
+                    #   with st.spinner("🤖 Generating answer..."):
+                    #       answer = generate_answer(prompt)   # blocks 5-15s
+                    #   st.text_area("Response", value=answer, height=250)
+                    #
+                    #   The entire UI froze until the LLM finished generating.
+                    #   User saw nothing for 5-15 seconds then everything at once.
+                    #
+                    # NOW:
+                    #   st.write_stream(generate_answer_stream(prompt))
+                    #
+                    #   generate_answer_stream() is a Python generator that
+                    #   yields one token at a time from Ollama's streaming API.
+                    #   st.write_stream() calls next() on the generator repeatedly
+                    #   and appends each token to the UI immediately.
+                    #
+                    #   Result: first token appears in ~0.5 seconds.
+                    #   User sees the answer building word by word — like ChatGPT.
+                    #
+                    # WHY WE STILL NEED generate_answer() (non-streaming):
+                    #   We need the COMPLETE answer string to:
+                    #   1. Save to chat_history for conversation memory
+                    #   2. Log to activity_log.jsonl
+                    #   st.write_stream() returns the full collected string
+                    #   after streaming completes — we capture that.
+                    # ─────────────────────────────────────────────────────────
+                    st.markdown("### 🤖 AI Answer")
+                    answer = st.write_stream(
+                        generate_answer_stream(prompt, max_new_tokens=300)
+                    )
+                    # st.write_stream returns the full collected string
+                    # once streaming is complete — use it for history + logging
 
                     st.session_state.last_context  = context
                     st.session_state.last_question = question
@@ -288,9 +323,6 @@ with col2:
                             st.markdown(f"**A:** {turn['answer']}")
                             st.divider()
 
-                    st.markdown("### 🤖 AI Answer")
-                    st.text_area("Response", value=answer, height=250)
-
                     # ── Sources ───────────────────────────────────────────────
                     # ─────────────────────────────────────────────────────────
                     # WHAT CHANGED — distance metric label
@@ -304,16 +336,16 @@ with col2:
                     # ─────────────────────────────────────────────────────────
                     st.markdown("### 📌 Sources")
                     for i, c in enumerate(retrieved, 1):
-                        cos_dist     = c.get("score", 0)
+                        rrf_score    = c.get("score", 0)
                         rerank_score = c.get("rerank_score", None)
                         if rerank_score is not None:
                             st.write(
                                 f"**#{i}** `{c['source']}` | "
-                                f"Cosine dist: `{cos_dist:.4f}` | "
+                                f"RRF score: `{rrf_score:.4f}` | "
                                 f"Rerank score: `{rerank_score:.4f}`"
                             )
                         else:
-                            st.write(f"**#{i}** `{c['source']}` | Cosine dist: `{cos_dist:.4f}`")
+                            st.write(f"**#{i}** `{c['source']}` | RRF score: `{rrf_score:.4f}`")
 
     # ── Smart Follow-ups ───────────────────────────────────────────────────────
     if st.session_state.last_context and st.session_state.last_question:
