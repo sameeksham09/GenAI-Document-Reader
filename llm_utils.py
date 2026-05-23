@@ -321,3 +321,139 @@ def generate_answer_stream(prompt: str, max_new_tokens: int = 200):
         yield _generate_answer_local_lora(prompt, max_new_tokens=max_new_tokens)
     else:
         yield from _stream_ollama(prompt, max_new_tokens=max_new_tokens)
+
+
+# ── Faithfulness Scoring ───────────────────────────────────────────────────────
+
+def check_faithfulness(context, answer):
+    """
+    Check whether the generated answer is faithful to the retrieved context.
+
+    WHAT IS FAITHFULNESS:
+    ─────────────────────────────────────────────────────────────────────────
+    Faithfulness measures whether every claim in the answer can be traced
+    back to the retrieved context. An answer is unfaithful if it:
+      - Introduces facts not present in the context (hallucination)
+      - Contradicts what the context says
+      - Makes up specific numbers, names, or definitions
+
+    This is one of the four core RAGAs metrics:
+      1. Faithfulness        ← what we're implementing
+      2. Answer Relevance    (does the answer address the question?)
+      3. Context Precision   (is the retrieved context relevant?)
+      4. Context Recall      (does context cover the answer?)
+
+    WHY A SECOND LLM CALL:
+    ─────────────────────────────────────────────────────────────────────────
+    We use the LLM as a judge — an "LLM-as-evaluator" pattern.
+    The same model that generated the answer now reads both the context
+    and the answer together and scores the overlap.
+
+    This works because:
+    - The judge sees BOTH at once — it can spot mismatches
+    - It's language-native — understands paraphrasing vs hallucination
+    - It's fast — a short structured prompt, max 80 tokens output
+
+    Alternative: embedding similarity between answer and context.
+    Problem: embeddings can't catch factual contradictions well.
+    LLM judge is more accurate for faithfulness specifically.
+
+    PROMPT DESIGN — WHY SO STRUCTURED:
+    ─────────────────────────────────────────────────────────────────────────
+    We ask for SCORE, VERDICT, REASON on separate lines.
+    Small LLMs need very explicit format instructions.
+    We parse the output by looking for these keywords line by line.
+    If parsing fails, we return a safe "uncertain" default — never crash.
+
+    Args:
+        context : the retrieved chunks joined as a string (what was given to LLM)
+        answer  : the generated answer string (what the LLM produced)
+
+    Returns:
+        dict with keys:
+            score   : int 0-10 (10 = perfectly faithful)
+            verdict : str "FAITHFUL" | "PARTIALLY FAITHFUL" | "NOT FAITHFUL"
+            reason  : str one-line explanation
+            emoji   : str ✅ | ⚠️ | ❌
+    ─────────────────────────────────────────────────────────────────────────
+    """
+
+    # ── Build the judge prompt ────────────────────────────────────────────────
+    # We cap context at 1500 chars to keep the prompt short.
+    # The full context can be very long — we only need enough for the judge
+    # to verify the answer claims. First 1500 chars covers the key content.
+    context_preview = context[:1500]
+
+    prompt = f"""You are evaluating whether an AI answer is faithful to the provided context.
+
+Context (retrieved from document):
+{context_preview}
+
+Generated Answer:
+{answer}
+
+Score how faithful the answer is to the context above.
+A faithful answer only contains information that appears in the context.
+An unfaithful answer introduces facts, numbers, or claims not in the context.
+
+Reply in EXACTLY this format (3 lines only, nothing else):
+SCORE: [number from 0 to 10]
+VERDICT: [FAITHFUL or PARTIALLY FAITHFUL or NOT FAITHFUL]
+REASON: [one sentence explanation]"""
+
+    # ── Call LLM ──────────────────────────────────────────────────────────────
+    # We use generate_answer() (non-streaming) because we need the full
+    # structured output to parse. Streaming would give us tokens one by one
+    # which we can't parse until complete anyway.
+    raw = generate_answer(prompt, max_new_tokens=80)
+
+    # ── Parse the response ────────────────────────────────────────────────────
+    # We parse line by line looking for SCORE:, VERDICT:, REASON: prefixes.
+    # This is robust to extra whitespace or slight formatting variations.
+    #
+    # Default values if parsing fails — never crash the UI.
+    score   = 5
+    verdict = "UNCERTAIN"
+    reason  = "Could not evaluate faithfulness."
+
+    for line in raw.splitlines():
+        line = line.strip()
+        if line.upper().startswith("SCORE:"):
+            try:
+                # Extract the number after "SCORE:"
+                # Handles "SCORE: 8", "SCORE:8", "SCORE: 8/10"
+                num_str = line.split(":", 1)[1].strip().split("/")[0].strip()
+                score   = max(0, min(10, int(float(num_str))))
+            except:
+                pass
+
+        elif line.upper().startswith("VERDICT:"):
+            v = line.split(":", 1)[1].strip().upper()
+            if "NOT" in v:
+                verdict = "NOT FAITHFUL"
+            elif "PARTIAL" in v:
+                verdict = "PARTIALLY FAITHFUL"
+            elif "FAITHFUL" in v:
+                verdict = "FAITHFUL"
+
+        elif line.upper().startswith("REASON:"):
+            reason = line.split(":", 1)[1].strip()
+
+    # ── Map to emoji ──────────────────────────────────────────────────────────
+    # Score thresholds:
+    #   7-10 → FAITHFUL    ✅ (high confidence the answer came from context)
+    #   4-6  → UNCERTAIN   ⚠️  (mixed — some claims may be unsupported)
+    #   0-3  → NOT FAITHFUL ❌ (answer likely hallucinated)
+    if score >= 7:
+        emoji = "✅"
+    elif score >= 4:
+        emoji = "⚠️"
+    else:
+        emoji = "❌"
+
+    return {
+        "score":   score,
+        "verdict": verdict,
+        "reason":  reason,
+        "emoji":   emoji,
+    }
